@@ -1,0 +1,56 @@
+macro "my_BGN_MD" {
+	//Dialog.create("Set RBR");
+	//Dialog.addNumber("Rolling Ball Radius:",170);
+	//Dialog.addNumber("Median radius:",10);
+	//Dialog.addNumber("PT_radius",5);
+	//Dialog.addNumber("PT_cutoff",1);
+	//Dialog.addNumber("PT_percentile",0.2);
+   	//Dialog.addNumber("PT_displacement",6);
+	//Dialog.show();
+	r=170 	//Rolling Ball Radius
+	m=10 	//Median Radius
+	rpt=5 	//PT Radius
+	cf=0 	//PT Cutoff
+	pc=0.3 	//PT Percentile
+	ds=6 	//PT Displacement
+	id=getImageID();
+	dir = getDirectory("image")
+
+	//SAVE AN IMAGE WHICH HIGHLIHGT SATURATION IF ANY
+	run("Z Project...", "start=1 stop=2 projection=[Max Intensity]");
+	Title = getTitle();
+	setThreshold(65535,65535)
+	SaturationName=replace(Title,".tif","_SaturationCtrl.tif");
+	saveAs("Tiff", dir+SaturationName);
+	close();
+
+	//THE THIRD FRAME IS BF AND SHOULD BE REMOVED
+	run("Duplicate...", "duplicate range=1-2");
+	Title = getTitle();
+	saveAs("Tiff", dir+Title);
+
+	//CLOSE THE ORIGINAL IMAGE, THE DUPLICATED IMAGE IS AUTOMATICALLY SELECTED
+	 selectImage(id);
+	close();
+	
+	//SUBTRACT THE BACKGROUND 
+	run("Subtract Background...", "rolling="+r+" stack");
+	Title = getTitle();
+	Name=replace(Title,".tif","_BGN.tif")
+	saveAs("Tiff", dir+Name);
+
+	//CORRECT FOR THE CYTOPLASMATIC BACKGROUND
+	run("Duplicate...","title=to_filter duplicate");
+	run("Median...", "radius="+m+" stack");
+	imageCalculator("Subtract create stack",Name,"to_filter");
+	MedianName=replace(Name,".tif","_MD.tif");
+	saveAs("Tiff", dir+MedianName);
+
+	selectWindow("to_filter");
+	close();
+	selectWindow(Name);
+	close();
+
+	run("Particle Tracker", "radius="+rpt+" cutoff="+cf+" percentile="+pc+" link=1 displacement="+ds);
+	run("Quit");
+}

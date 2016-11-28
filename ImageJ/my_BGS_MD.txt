@@ -1,0 +1,49 @@
+macro "my_BGN_MD" {
+	Dialog.create("Set RBR");
+	Dialog.addNumber("Rolling Ball Radius:",170);
+	Dialog.addNumber("Median radius:",10);
+	Dialog.addNumber("PT radius",5);
+	Dialog.addNumber("PT cutoff",1);
+	Dialog.addNumber("PT percentile",0.2);
+   	Dialog.addNumber("PT displacement",6);
+	Dialog.show();
+	r=Dialog.getNumber();
+	m=Dialog.getNumber();
+	rpt=Dialog.getNumber();
+	cf=Dialog.getNumber();
+	pc=Dialog.getNumber();
+	ds=Dialog.getNumber();
+	id=getImageID();
+
+	//run("Duplicate...", "title=saturation.tif duplicate");
+	
+	run("Z Project...", "start=1 stop=2 projection=[Max Intensity]");
+	setThreshold(4095,4095)
+	saturation_image=getImageID();
+
+	selectImage(id);
+
+	run("Subtract Background...", "rolling="+r+" stack");
+	dir = getDirectory("image")
+	Title = getTitle();
+	Name=replace(Title,".tif","_BGN.tif")
+
+	saveAs("Tiff", dir+Name);
+
+	run("Duplicate...","title=to_filter duplicate");
+	run("Median...", "radius="+m+" stack");
+	
+	imageCalculator("Subtract create stack",Name,"to_filter");
+	
+	//close()
+	MedianName=replace(Name,".tif","_MD.tif");
+	saveAs("Tiff", dir+MedianName);
+
+	selectWindow("to_filter");
+	close();
+	selectWindow(Name);
+	close();
+
+	run("Particle Tracker", "radius="+rpt+" cutoff="+cf+" percentile="+pc+" link=1 displacement="+ds);
+	selectImage(saturation_image);
+}

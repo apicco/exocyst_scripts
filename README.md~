@@ -30,7 +30,6 @@ Tracking was done using [Particle Tracker](http://imagej.net/Particle_Tracker) f
 	this.particles[m].mu02 += (float)(l * l * c); 
 
 The software was run using a shell script. Here, we provide an example:
-
 	#!/bin/bash
 	#choose an option:
 	#images: extract the centroids from the images and organize the datas, including the beads corrections
