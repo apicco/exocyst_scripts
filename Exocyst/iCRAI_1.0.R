@@ -11,7 +11,6 @@ nearest.neigh<-function(input.data){
 	nearests<-c()
 	for (i in 1:length(input.data[,1])){
 		dist<-sqrt((input.data[-i,1]-input.data[i,1])^2+(input.data[-i,2]-input.data[i,2])^2)
-		#nearests<-rbind(nearests,c(min(dist),which(dist==min(dist))))
 		nearests<-c(nearests,min(dist))
 	}
 	nearests
@@ -45,8 +44,6 @@ get.contour<-function(image.data,input.range=c(0,0.01)){
 	
 	seg.erode<-erode(seg,mk2)
 	contour<-seg-seg.erode
-	#output<-which(contour>0,arr.ind=TRUE)
-	#output[,c(2,1)]-1
 	list(contour=contour,otsuseg=t)
 }
 
@@ -91,7 +88,6 @@ contour.dist<-function(input.data,image.contour,input.data2){
 			dy2<-input.data[i,2]-input.data2[i,2]
 			angle.data<-c(angle.data,atan2(dy2,dx2)-angle.membrane.tmp)
 		}
-		#dist<-c(dist,min(sqrt((contour.coords[,2]-input.data[i,1])^2+(contour.coords[,1]-input.data[i,2])^2)))
 	}
 	if(!is.null(input.data2)) list(dist=dist,angle=angle,angle.data=angle.data,otsuseg=image.contour$otsuseg)
 	else list(dist=dist,angle=angle,otsuseg=image.contour$otsuseg)
@@ -139,28 +135,6 @@ gaussian.fit<-function(cm,image.data,crop.radius=5,weight=TRUE){
 	output
 }
 
-
-#angular.sel<-function(a,b){
-#	a<-a/pi
-#	b<-b/pi
-#	
-#	#focus on angles that have the same sign
-#	ab<-cbind(sign(b)*a,sign(a)*b)
-#	sel<-which(ab[,1]>0 & ab[,2]>0)
-#	ab.QI<-ab[sel,]
-#	
-#	#select those that are around 3/2pi and bring them to pi/2
-#	sel1<-which(ab.QI[,1]>1 & ab.QI[,2]>1)
-#	ab.sel<-ab.QI
-#	ab.sel[sel1,]<-ab.sel[sel1,]-1
-#	
-#	#removes the angles which are c(pi/2,3pi/2) or (3pi/2,pi/2) by computing the difference 
-#	ab.diff<-abs(ab.sel[,1]-ab.sel[,2])
-#	#this should be the x falling in the selected region
-#	sel.diff<-ab.diff<1/6
-#	
-#}
-#	
 angular.sel<-function(a,b){
 	a<-a/pi
 	b<-b/pi
@@ -260,8 +234,6 @@ load.data.collection<-function(directory,image.directory=c()){
 p<-function(x,mu,sigma) (x/sigma^2)*exp(-(mu^2+x^2)/(2*sigma^2))*besselI(x*mu/sigma^2,0)
 
 iData<-function(input.data.path,image.path){
-	#input.data.path<-"111103_F8/"
-	#image.path<-"images/"
 	
 	contour.dist.cutoff<-22#18
 	nearest.dist.cutoff<-10
@@ -286,18 +258,9 @@ iData<-function(input.data.path,image.path){
 
 	data.frame(m2.W1=input.data$W1[,4],m2.W2=input.data$W2[,4],ecc.W1=input.data$W1[,eccl],ecc.W2=input.data$W2[,eccl])->my.df
 	
-	#d<-dist(my.df.data,method="euclidean")
-	#cl<-hclust(d,method="ward")
-	#groups<-cutree(cl,2)
-
-	#list(input.data=input.data,group.1=which(groups==1),group.2=which(groups==2),df=df)
 	list(input.data=input.data,df=my.df)
 }	
 
 gaussian.2D.p<-function(x,y,xp,yp,sigma.x,sigma.y,N){
 	exp( - ( x - xp ) * ( x - xp ) / ( 2 * sigma.x ) - ( y - yp ) * ( y - yp ) / ( 2  * sigma.y ) ) / ( 2 * pi * sigma.x * sigma.y * N )
-}
-
-cost.function<-function(data){
-	#compute a score for each points based on the eccentricity and second moment
 }

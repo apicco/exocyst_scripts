@@ -68,67 +68,8 @@ odca2<-function(x,mu=20,sigma=20,input.filter=1){
 		#scores<-rbind(scores,c(which(x.old==x[which(l==m)]),LL(fits[[it]]@coef[[1]],fits[[it]]@coef[[2]],x),m,fits[[it]]@coef[[1]],fits[[it]]@coef[[2]])) #store the x.old that should be removed, the max likelihood without and with rejectig one possible outlier, and the mu and sigma 
 		x<-x[-which(l==m)]
 	}
-#	#METHOD #1
-#	#I want to minimize the improvement in the m the outlier removing
-#	#for each dataset X an element x is removed: X2 = X1 - x_i and the fit computed. deltad	is the difference in the fit between the two dataset: fit_2 - fit_1. If the removal of x_i was not so important the difference between the fit is minimal, therefore X1 was already a good estimate
-#	delta.d<-cbind(scores[-length(scores[,1]),4],log(abs(scores[-length(scores[,1]),4]-scores[-1,4])))
-#	#ONLY the data with fits greater than the fit with the maximal delta.d will be taken into account, in fact it can be that outliers give a min to delta.d too (if there are too many outliers for instance)
-#	max.delta.d<-delta.d[which(delta.d[,2]==max(delta.d[,2],na.rm=T)),]
-#	sel.delta.d<-delta.d[which(delta.d[,1]>=max.delta.d[1]),]
-#	#select the min deltat and the sel out
-#	min.delta.d<-sel.delta.d[which(sel.delta.d[,2]==min(sel.delta.d[,2],na.rm=T))]
-#	sel.out<-which(scores[,4]==min.delta.d[1])
-#	#the data will be those forming X1, which means all the x.old less those remuved up to X1 excluded (hence sel.out-1)
-#	return(list(data=x.old[-scores[1:(sel.out-1),1]],LL=scores[sel.out,2],fit=summary(fits[[sel.out]]),delta.d=delta.d,sel.delta.d=sel.delta.d,sel=sel.out))
-#	#METHOD #2
-#	#I want to minimize the improvement in the m the outlier removing therefore I select the mu and sigma corresponding to the x[i] whose removal did improve the likelihood of the dataset the less.
-#	#I compute the ratio between the likelihood with and without x[i]. this will be close greathere or = to one
-#	Lratio<-as.vector(filter(scores[,2]/scores[,3],rep(1/input.filter,input.filter)))
-#
-#	#as removing a point is likely to decrease the likelihood: Lratio should be greater of equal to one
-#
-#	sel.out=which(Lratio==min(Lratio,na.rm=T))[1]
-#
-#	#the data will be those forming X1, which means all the x.old less those remuved up to X1 excluded (hence sel.out-1)
-#	return(list(data=x.old[-scores[1:(sel.out-1),1]],LL=scores[sel.out,2],fit=summary(fits[[sel.out]]),delta.d=cbind(scores[,4],Lratio),sel.delta.d=1:length(Lratio),sel=sel.out))
-#	#METHOD #3
-#	#I want to select the dataset whose removal of each of his datapoints give the same likelihood. In other words all the points in the dataset are eligible to be there. The parameter to take into account is the standard deviation of the likelihoods compuded removing a point at the time. I want to minimize this likelihood.
-#
-#	sel.out=which(scores[,6]==min(scores[,6]))
-#	return(list(data=x.old[-scores[1:(sel.out-1),1]],LL=scores[sel.out,2],fit=summary(fits[[sel.out]]),delta.d=cbind(scores[,4],scores[,6]),sel.delta.d=1:length(scores[,6]),sel=sel.out))
-#	#METHOD #4
-#	#When most of the outliers get rejected the distances estimates do not differ too much. First I identify the region in which distances accumulate, then I search for a local minima for the ratio between the likelihoods in this neighborhood
-#	delta.d<-cbind(scores[-length(scores[,1]),4],log(abs(scores[-length(scores[,1]),4]-scores[-1,4])))
-#	#ONLY the data with fits greater than the fit with the maximal delta.d will be taken into account, in fact it can be that outliers give a min to delta.d too (if there are too many outliers for instance)
-#	max.delta.d<-delta.d[which(delta.d[,2]==max(delta.d[,2],na.rm=T)),]
-#	sel.d<-which(delta.d[,1]>=max.delta.d[1])+1#the last distance was missing and the max was included with the >=, +1 exclde the max and include the last distance
-#
-#	h<-hist(scores[,4])
-#	sel.break<-which(h$counts==max(h$counts,na.rm=T))+1#that's the starting distance vaule from which to look for the local minima in the ratio between likelihoods
-#	look_for_the_minimum=TRUE
-#	Lratio<-cbind(scores[,4],as.vector(filter(scores[,2]/scores[,3],rep(1/input.filter,input.filter))))
-#	j=1
-#	jj=0
-#	while(look_for_the_minimum){
-#		L<-Lratio[which(Lratio[,1]>h$breaks[sel.break-j] & Lratio[,1]<h$breaks[sel.break+jj]),]
-#		L<-L[order(L[,1]),]
-#		sel.min.L<-which(L[,2]==min(L[,2],na.rm=TRUE))
-#		
-#		#the minimum must not be in the boundaries of the selection	
-#		if (sel.min.L > 1 & sel.min.L < length(L[,1])) {
-#			look_for_the_minimum=FALSE
-#		} else if (sel.min.L == length(L[,1])){
-#			if ((sel.break+jj)<length(h$breaks)) jj=jj+1
-#			else look_for_the_minimum=FALSE
-#		} else if (sel.min.L ==1){
-#			if ((sel.break-j)>1) j=j+1
-#			else look_for_the_minimum=FALSE
-#		}
-#	}
-#
-#	sel.out=which(scores[,4]==L[sel.min.L,1])[1]
-#	return(list(data=x.old[-scores[1:(sel.out-1),1]],LL=scores[sel.out,2],fit=summary(fits[[sel.out]]),delta.d=Lratio,sel.delta.d=1:length(scores[,1]),sel=sel.out))
-	#METHOD 5
+
+	#Outlier rejection
 
 	pd.tmp<-1/abs(scores[-length(scores[,4]),4]-scores[-1,4])
 	pd<-pd.tmp/sum(pd.tmp,na.rm=TRUE)
